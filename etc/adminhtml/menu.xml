@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * This file is part of the Orangecat Prices package.
+ *
+ * (c) Oliverio Gombert <olivertar@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Orangecat_Prices::base"
+             title="Prices"
+             module="Orangecat_Prices"
+             sortOrder="20"
+             resource="Orangecat_Prices::base"
+             parent="Orangecat_Core::menu"
+        />
+        <add id="Orangecat_Prices::config"
+             title="Settings"
+             module="Orangecat_Prices"
+             sortOrder="99999"
+             action="adminhtml/system_config/edit/section/prices"
+             resource="Orangecat_Prices::config"
+             parent="Orangecat_Prices::base"
+        />
+    </menu>
+</config>

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+/*
+ * This file is part of the Orangecat Prices package.
+ *
+ * (c) Oliverio Gombert <olivertar@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+-->
+
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="prices" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1"
+                 showInStore="1">
+            <class>separator-top</class>
+            <label>Prices</label>
+            <tab>orangecatb2b</tab>
+            <resource>Orangecat_Prices::config</resource>
+            
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Global B2B Pricing Engine</label>
+                
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable B2B Pricing Engine</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable or disable the Global B2B Pricing Orchestrator. If disabled, all modules (Lists, Families, etc.) will be ignored.</comment>
+                </field>
+
+                <field id="resolution_mode" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Conflict Resolution Mode</label>
+                    <source_model>Orangecat\Prices\Model\Config\Source\ResolutionMode</source_model>
+                    <comment>If multiple pricing modules return a price, which one wins?</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
