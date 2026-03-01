@@ -31,4 +31,5 @@
                 type="Orangecat\Prices\Plugin\Pricing\FinalPricePlugin"
                 sortOrder="100"/>
     </type>
+
 </config>

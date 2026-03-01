@@ -13,6 +13,7 @@
     <module name="Orangecat_Prices">
         <sequence>
             <module name="Magento_Catalog"/>
+            <module name="Orangecat-Core"/>
             <module name="Orangecat_Company"/>
         </sequence>
     </module>

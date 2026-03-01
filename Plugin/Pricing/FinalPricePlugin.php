@@ -24,11 +24,13 @@ class FinalPricePlugin
      * @param PriceResolver $priceResolver
      * @param CustomerSession $customerSession
      * @param CompanyManagement $companyManagement
+     * @param \Magento\Framework\App\Http\Context $httpContext
      */
     public function __construct(
         private readonly PriceResolver $priceResolver,
         private readonly CustomerSession $customerSession,
-        private readonly CompanyManagement $companyManagement
+        private readonly CompanyManagement $companyManagement,
+        private readonly \Magento\Framework\App\Http\Context $httpContext
     ) {}
 
     /**
@@ -40,20 +42,21 @@ class FinalPricePlugin
      */
     public function afterGetValue(FinalPrice $subject, $result)
     {
-        // Avoid calculation if the customer is not logged in / FPC context without identity
-        if (!$this->customerSession->isLoggedIn()) {
-            return $result;
-        }
+        // Try getting the company ID from the Http Context first (Works for FPC)
+        $companyId = (int)$this->httpContext->getValue('orangecat_company_id');
 
-        $customerId = (int)$this->customerSession->getCustomerId();
-        $companyId = (int)$this->companyManagement->getCompanyIdByCustomerId($customerId);
-
-        if (!$companyId) {
-            return $result;
+        // Fallback to customer session if not in Context (regular non-FPC request or early request)
+        if (!$companyId && $this->customerSession->isLoggedIn()) {
+            $customerId = (int)$this->customerSession->getCustomerId();
+            $companyId = (int)$this->companyManagement->getCompanyIdByCustomerId($customerId);
         }
 
         /** @var \Magento\Catalog\Model\Product $product */
         $product = $subject->getProduct();
+
+        if (!$companyId) {
+            return $result;
+        }
 
         $typeId = $product->getTypeId();
         if (in_array($typeId, ['configurable', 'bundle', 'grouped'])) {
