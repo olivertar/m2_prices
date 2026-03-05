@@ -34,6 +34,15 @@
                         <field id="enabled">1</field>
                     </depends>
                 </field>
+                
+                <field id="use_tier_prices" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Use Company Tier Prices</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable dynamic calculation of B2B Volume/Tier pricing. If disabled, AJAX calls will ignore volume discounts to maximize performance.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
             </group>
         </section>
     </system>

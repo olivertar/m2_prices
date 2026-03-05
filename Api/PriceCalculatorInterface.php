@@ -33,4 +33,16 @@ interface PriceCalculatorInterface
      * @return float|null
      */
     public function calculate(string $sku, float $qty, int $companyId, float $basePrice = 0.0): ?float;
+
+    /**
+     * Get all configured quantity tiers for a given product and company.
+     * Returns an array of tier arrays: [['qty' => 5.0, 'price' => 8.50], ...]
+     * Order should be ascending by quantity.
+     *
+     * @param string $sku
+     * @param int $companyId
+     * @param float $basePrice
+     * @return array
+     */
+    public function getTiers(string $sku, int $companyId, float $basePrice = 0.0): array;
 }

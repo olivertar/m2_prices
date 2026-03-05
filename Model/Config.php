@@ -27,14 +27,14 @@ class Config
      */
     public const XML_PATH_ENABLED         = 'prices/general/enabled';
     public const XML_PATH_RESOLUTION_MODE = 'prices/general/resolution_mode';
+    public const XML_PATH_USE_TIER_PRICES = 'prices/general/use_tier_prices';
 
     /**
      * @param ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         private readonly ScopeConfigInterface $scopeConfig
-    ) {
-    }
+    ) {}
 
     /**
      * Check if the B2B Custom Pricing Engine is globally enabled.
@@ -46,6 +46,26 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(
             self::XML_PATH_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Check if B2B Tier Prices are enabled to be calculated dynamically.
+     *
+     * @param int|string|null $storeId
+     * @return bool
+     */
+    public function isTierPricesEnabled($storeId = null): bool
+    {
+        // If the entire engine is disabled, tier prices are logically disabled as well
+        if (!$this->isEnabled($storeId)) {
+            return false;
+        }
+
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_USE_TIER_PRICES,
             ScopeInterface::SCOPE_STORE,
             $storeId
         );

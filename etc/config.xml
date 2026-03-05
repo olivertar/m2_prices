@@ -15,6 +15,7 @@
             <general>
                 <enabled>1</enabled>
                 <resolution_mode>lowest_price</resolution_mode>
+                <use_tier_prices>1</use_tier_prices>
             </general>
         </prices>
     </default>
