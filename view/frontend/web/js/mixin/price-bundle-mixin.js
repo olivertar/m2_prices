@@ -76,6 +76,23 @@ define([
                                                         $priceTextElement.html(formattedPrice);
                                                         $priceAmountElement.attr('data-price-amount', b2bPriceData.finalPrice.amount);
                                                     }
+
+                                                    // Hide the entire "+ 0,00" block if the amount is exactly 0
+                                                    var $priceNotice = $container.find('.price-notice');
+                                                    if (parseFloat(b2bPriceData.finalPrice.amount) === 0) {
+                                                        if ($priceNotice.length) {
+                                                            $priceNotice.hide();
+                                                        } else {
+                                                            // Fallback if price-notice is absent
+                                                            $container.find('.price-container').hide();
+                                                        }
+                                                    } else {
+                                                        if ($priceNotice.length) {
+                                                            $priceNotice.show();
+                                                        } else {
+                                                            $container.find('.price-container').show();
+                                                        }
+                                                    }
                                                 }
                                             }
                                         });

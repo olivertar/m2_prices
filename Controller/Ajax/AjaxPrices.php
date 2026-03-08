@@ -74,17 +74,15 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
     {
         $result = $this->jsonFactory->create();
 
-        // Only process for logged-in B2B customers
+        // Only process for logged-in users (guests get empty object)
         if (!$this->customerSession->isLoggedIn()) {
-            return $result->setData(['prices' => new \stdClass()]);
+            return $result->setData(['prices' => new \stdClass(), 'is_logged_in' => false]);
         }
 
         $customerId = (int)$this->customerSession->getCustomerId();
         $companyId = (int)$this->companyManagement->getCompanyIdByCustomerId($customerId);
-
-        if (!$companyId) {
-            return $result->setData(['prices' => new \stdClass()]);
-        }
+        // If the user has no company ($companyId = 0), we STILL process the request
+        // because we need to return the base prices to populate the empty server-side DOM.
 
         // Parse JSON body
         $body = $this->request->getContent();
@@ -99,7 +97,7 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
         $tierIdsInput = isset($data['tier_product_ids']) && is_array($data['tier_product_ids']) ? array_slice($data['tier_product_ids'], 0, self::MAX_SKUS) : [];
 
         if (empty($skusInput) && empty($idsInput) && empty($tierIdsInput)) {
-            return $result->setData(['prices' => new \stdClass()]);
+            return $result->setData(['prices' => new \stdClass(), 'is_logged_in' => true]);
         }
 
         $skus = array_unique($skusInput);
@@ -227,8 +225,18 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
                         $bundlePrices[$productId] = [];
                     }
 
-                    $minPrice = 0;
-                    $maxPrice = 0;
+                    $priceType = $product->getPriceType();
+                    $isFixed = $priceType == \Magento\Bundle\Model\Product\Price::PRICE_TYPE_FIXED;
+
+                    $bundleBasePrice = 0;
+                    if ($isFixed) {
+                        $basePrice = (float)$product->getPrice();
+                        $b2bPrice = $this->priceResolver->resolve($sku, 1.0, $companyId, $basePrice);
+                        $bundleBasePrice = $b2bPrice !== null ? $b2bPrice : $basePrice;
+                    }
+
+                    $minPrice = $bundleBasePrice;
+                    $maxPrice = $bundleBasePrice;
 
                     foreach ($options as $option) {
                         if (!$option->getSelections()) {
@@ -243,14 +251,31 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
                             $childSku = $selection->getSku();
                             $selectionId = $selection->getSelectionId();
 
-                            $basePrice = (float)$selection->getPrice();
-                            $b2bPrice = $this->priceResolver->resolve($childSku, 1.0, $companyId, $basePrice);
-                            $childFinalPrice = $b2bPrice !== null ? $b2bPrice : $basePrice;
+                            if ($isFixed) {
+                                // For fixed bundles, options just add a fixed or percentage amount
+                                $selectionPriceType = $selection->getSelectionPriceType(); // 0 = fixed, 1 = percent
+                                $selectionPriceValue = (float)$selection->getSelectionPriceValue();
+                                
+                                if ($selectionPriceType == 1) { // percent
+                                    $childFinalPrice = $bundleBasePrice * ($selectionPriceValue / 100);
+                                } else { // fixed
+                                    // Should we discount the option upcharge? B2B usually discounts the bundle base price.
+                                    // For simplicity, we just add the fixed upcharge
+                                    $childFinalPrice = $selectionPriceValue;
+                                }
+                                $oldPrice = $childFinalPrice;
+                            } else {
+                                // Dynamic bundles
+                                $basePrice = (float)$selection->getPrice();
+                                $b2bPrice = $this->priceResolver->resolve($childSku, 1.0, $companyId, $basePrice);
+                                $childFinalPrice = $b2bPrice !== null ? $b2bPrice : $basePrice;
+                                $oldPrice = (float)$selection->getPrice();
+                            }
 
                             $bundlePrices[$productId][$selectionId] = [
                                 'finalPrice' => ['amount' => $childFinalPrice],
                                 'basePrice' => ['amount' => $childFinalPrice],
-                                'oldPrice' => ['amount' => (float)$selection->getPrice()],
+                                'oldPrice' => ['amount' => $oldPrice],
                             ];
 
                             if ($isMulti) {
@@ -288,19 +313,19 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
                 // Simple / Virtual / Downloadable
                 $basePrice = (float)$product->getPrice();
                 $b2bPrice = $this->priceResolver->resolve($sku, 1.0, $companyId, $basePrice);
+                $finalPrice = $b2bPrice !== null ? $b2bPrice : $basePrice;
 
-                if ($b2bPrice !== null) {
-                    $priceData = [
-                        'final_price' => $b2bPrice,
-                        'formatted' => $this->priceCurrency->format($b2bPrice, false),
-                    ];
-                    $prices[$sku] = $priceData;
-                    $pricesById[$productId] = $priceData;
-                }
+                $priceData = [
+                    'final_price' => $finalPrice,
+                    'formatted' => $this->priceCurrency->format($finalPrice, false),
+                ];
+                $prices[$sku] = $priceData;
+                $pricesById[$productId] = $priceData;
             }
         }
 
         $responseData = [
+            'is_logged_in' => true,
             'prices' => empty($prices) ? new \stdClass() : $prices,
             'prices_by_id' => empty($pricesById) ? new \stdClass() : $pricesById
         ];

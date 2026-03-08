@@ -101,6 +101,17 @@ define(['jquery'], function ($) {
                     var id = $box.attr('data-product-id');
                     if (id && data.prices_by_id[id]) {
                         var p = data.prices_by_id[id];
+                        // DEBUG: trace bundle price patching
+                        console.log('[B2B DEBUG] Price box #' + id, {
+                            boxClasses: $box.attr('class'),
+                            boxDisplay: $box.css('display'),
+                            priceData: p,
+                            minWrappers: $box.find('[data-price-type="minPrice"]').length,
+                            maxWrappers: $box.find('[data-price-type="maxPrice"]').length,
+                            finalWrappers: $box.find('[data-price-type="finalPrice"]').length,
+                            allWrappers: $box.find('[data-price-type]').length,
+                            boxHTML: $box.html().substring(0, 300)
+                        });
                         var $wrappers = $box.find('[data-price-type="finalPrice"], [data-price-type="price"], [data-price-type="regularPrice"], [data-price-type="basePrice"]');
 
                         $wrappers.each(function () {
@@ -111,18 +122,63 @@ define(['jquery'], function ($) {
                         // Patch min and max prices if they exist (Bundles)
                         if (p.min_price !== undefined) {
                             var $minWrappers = $box.find('[data-price-type="minPrice"]');
-                            $minWrappers.each(function () {
-                                $(this).attr('data-price-amount', p.min_price);
-                                $(this).find('.price').html(p.min_price_formatted);
-                            });
+                            if ($minWrappers.length) {
+                                $minWrappers.each(function () {
+                                    $(this).attr('data-price-amount', p.min_price);
+                                    $(this).find('.price').html(p.min_price_formatted);
+                                });
+                            } else {
+                                // FPC-cached page rendered a single price (no range) because guest prices were 0.
+                                // Patch the existing finalPrice wrapper to show the "From" min price.
+                                var $fallback = $box.find('[data-price-type="finalPrice"]');
+                                $fallback.each(function () {
+                                    $(this).attr('data-price-amount', p.min_price);
+                                    $(this).attr('data-price-type', 'minPrice');
+                                    $(this).find('.price').html(p.min_price_formatted);
+                                });
+
+                                // Add "From" label if missing
+                                var $priceContainer = $box.find('.price-container').first();
+                                if ($priceContainer.length && !$priceContainer.find('.price-label').length) {
+                                    $priceContainer.prepend('<span class="price-label">From&nbsp;</span>');
+                                }
+                            }
                         }
                         if (p.max_price !== undefined) {
                             var $maxWrappers = $box.find('[data-price-type="maxPrice"]');
-                            $maxWrappers.each(function () {
-                                $(this).attr('data-price-amount', p.max_price);
-                                $(this).find('.price').html(p.max_price_formatted);
-                            });
+                            if ($maxWrappers.length) {
+                                $maxWrappers.each(function () {
+                                    $(this).attr('data-price-amount', p.max_price);
+                                    $(this).find('.price').html(p.max_price_formatted);
+                                });
+                            }
                         }
+
+                        // Update priceBox widget internals so Magento recalculations don't override our patches
+                        if ($box.data('magePriceBox') || $box.data('mage-priceBox')) {
+                            try {
+                                var priceBoxInstance = $box.data('magePriceBox') || $box.data('mage-priceBox');
+                                if (priceBoxInstance && priceBoxInstance.options && priceBoxInstance.options.prices) {
+                                    if (p.min_price !== undefined && priceBoxInstance.options.prices.minPrice) {
+                                        priceBoxInstance.options.prices.minPrice.amount = p.min_price;
+                                    }
+                                    if (p.max_price !== undefined && priceBoxInstance.options.prices.maxPrice) {
+                                        priceBoxInstance.options.prices.maxPrice.amount = p.max_price;
+                                    }
+                                    if (priceBoxInstance.options.prices.finalPrice) {
+                                        priceBoxInstance.options.prices.finalPrice.amount = p.final_price;
+                                    }
+                                    if (priceBoxInstance.options.prices.basePrice) {
+                                        priceBoxInstance.options.prices.basePrice.amount = p.final_price;
+                                    }
+                                }
+                            } catch (e) {
+                                // Ignore if priceBox not fully initialized
+                            }
+                        }
+
+                        // Reveal the box if it was hidden safely by the server plugin due to zero price
+                        $box.removeClass('hidden-zero-price').css('display', '');
                     }
                 });
             }
@@ -151,6 +207,16 @@ define(['jquery'], function ($) {
                         }
                     }
                 });
+            }
+
+            // Remove the inline styles and hidden-cart classes injected by the CatalogBlockPlugin
+            // Use the explicit is_logged_in flag so it works even if there are no B2B prices (fallback to base)
+            if (data && data.is_logged_in === true) {
+                $('.hidden-cart').removeClass('hidden-cart').css('display', '');
+                $('.hidden-zero-price').removeClass('hidden-zero-price').css('display', '');
+
+                // Specifically re-enable tocart form if it was hidden
+                $('[data-b2b-hidden="1"]').removeAttr('data-b2b-hidden').css('display', '');
             }
 
             $allBoxes.removeClass('b2b-price-loading');
