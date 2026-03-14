@@ -101,17 +101,6 @@ define(['jquery'], function ($) {
                     var id = $box.attr('data-product-id');
                     if (id && data.prices_by_id[id]) {
                         var p = data.prices_by_id[id];
-                        // DEBUG: trace bundle price patching
-                        console.log('[B2B DEBUG] Price box #' + id, {
-                            boxClasses: $box.attr('class'),
-                            boxDisplay: $box.css('display'),
-                            priceData: p,
-                            minWrappers: $box.find('[data-price-type="minPrice"]').length,
-                            maxWrappers: $box.find('[data-price-type="maxPrice"]').length,
-                            finalWrappers: $box.find('[data-price-type="finalPrice"]').length,
-                            allWrappers: $box.find('[data-price-type]').length,
-                            boxHTML: $box.html().substring(0, 300)
-                        });
                         var $wrappers = $box.find('[data-price-type="finalPrice"], [data-price-type="price"], [data-price-type="regularPrice"], [data-price-type="basePrice"]');
 
                         $wrappers.each(function () {
