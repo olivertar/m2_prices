@@ -1,4 +1,10 @@
 var config = {
+    map: {
+        '*': {
+            'configurableVariationQty': 'Orangecat_Prices/js/configurable-variation-qty-override',
+            'Magento_InventoryConfigurableProductFrontendUi/js/configurable-variation-qty': 'Orangecat_Prices/js/configurable-variation-qty-override'
+        }
+    },
     config: {
         mixins: {
             'Magento_Catalog/js/price-box': {

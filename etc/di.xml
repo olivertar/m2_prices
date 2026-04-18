@@ -32,4 +32,5 @@
                 sortOrder="100"/>
     </type>
 
+    <preference for="Magento\InventoryCatalogFrontendUi\Controller\Product\GetQty" type="Orangecat\Prices\Controller\Rewrite\Product\GetQty" />
 </config>
