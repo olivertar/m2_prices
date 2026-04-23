@@ -60,6 +60,11 @@ define(['jquery'], function ($) {
     var deferred = $.Deferred();
     window.b2bPricesPromise = deferred.promise();
 
+    // Breeze normalization: ensure the promise has a .state() method like jQuery
+    if (typeof window.b2bPricesPromise.state !== 'function' && typeof deferred.state === 'function') {
+        window.b2bPricesPromise.state = deferred.state.bind(deferred);
+    }
+
     $(function () {
         var skus = collectSkus();
         var productIds = collectProductIds();
