@@ -1,4 +1,14 @@
 <?php
+
+/**
+ * This file is part of the Orangecat Prices package.
+ *
+ * (c) Oliverio Gombert <olivertar@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Orangecat\Prices\Controller\Rewrite\Product;
@@ -18,35 +28,18 @@ use Magento\Framework\Pricing\PriceCurrencyInterface;
 
 class GetQty extends BaseGetQty
 {
-    private $resultPageFactory;
-    private $productQty;
-    private $stockResolver;
-    private $customerSession;
-    private $companyManagement;
-    private $tierPriceResolver;
-    private $productRepository;
-    private $priceCurrency;
-
     public function __construct(
         Context $context,
-        ResultFactory $resultPageFactory,
-        GetProductQtyLeft $productQty,
-        StockResolverInterface $stockResolver,
-        CustomerSession $customerSession,
-        CompanyManagement $companyManagement,
-        TierPriceResolver $tierPriceResolver,
-        ProductRepositoryInterface $productRepository,
-        PriceCurrencyInterface $priceCurrency
+        private ResultFactory $resultPageFactory,
+        private GetProductQtyLeft $productQty,
+        private StockResolverInterface $stockResolver,
+        private CustomerSession $customerSession,
+        private CompanyManagement $companyManagement,
+        private TierPriceResolver $tierPriceResolver,
+        private ProductRepositoryInterface $productRepository,
+        private PriceCurrencyInterface $priceCurrency
     ) {
         parent::__construct($context, $resultPageFactory, $productQty, $stockResolver);
-        $this->resultPageFactory = $resultPageFactory;
-        $this->productQty = $productQty;
-        $this->stockResolver = $stockResolver;
-        $this->customerSession = $customerSession;
-        $this->companyManagement = $companyManagement;
-        $this->tierPriceResolver = $tierPriceResolver;
-        $this->productRepository = $productRepository;
-        $this->priceCurrency = $priceCurrency;
     }
 
     public function execute(): ResultInterface
