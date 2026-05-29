@@ -182,6 +182,7 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
                                 $childTierPrices[] = [
                                     'qty' => $tier['qty'],
                                     'price' => $tier['price'],
+                                    'formatted' => $this->priceCurrency->format($tier['price'], false),
                                     'percentage' => max(0, $percentage),
                                     'basePrice' => $tier['price']
                                 ];

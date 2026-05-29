@@ -1,0 +1,146 @@
+<?php
+/** @var \Magento\Framework\View\Element\Template $block */
+?>
+<script>
+(function () {
+    'use strict';
+
+    var BASE_URL = window.BASE_URL || '/';
+    if (BASE_URL[BASE_URL.length - 1] !== '/') {
+        BASE_URL += '/';
+    }
+
+    var b2bPricesData = null;
+    var b2bInitialTiers = [];
+    var pricesReady = false;
+    var pricesReadyCallbacks = [];
+
+    function onPricesReady(fn) {
+        if (pricesReady) {
+            fn(b2bPricesData);
+        } else {
+            pricesReadyCallbacks.push(fn);
+        }
+    }
+
+    function resolvePrices(data) {
+        b2bPricesData = data;
+        pricesReady = true;
+        pricesReadyCallbacks.forEach(function (fn) { fn(data); });
+        pricesReadyCallbacks = [];
+    }
+
+    function getMainProductId() {
+        var el = document.querySelector('input[type="hidden"][name="product"]');
+        return el ? el.value : null;
+    }
+
+    function buildTierHtml(tiers, isDynamic) {
+        var classes = 'prices-tier items b2b-tier-prices' + (isDynamic ? ' dynamic-b2b-tier' : '');
+        var html = '<ul class="' + classes + '" style="margin-top:15px;margin-bottom:20px;">';
+        tiers.forEach(function (tier) {
+            html += '<li class="item" style="margin-bottom:5px;">'
+                + 'Buy ' + tier.qty + ' for '
+                + '<span class="price-container price-tier_price" style="display:inline;">'
+                + '<span class="price-wrapper" style="display:inline;">'
+                + '<span class="price" style="font-weight:bold;">' + tier.formatted + '</span>'
+                + '</span></span> each'
+                + '</li>';
+        });
+        html += '</ul>';
+        return html;
+    }
+
+    function removeTierPrices() {
+        document.querySelectorAll('.b2b-tier-prices, .prices-tier').forEach(function (el) {
+            el.remove();
+        });
+    }
+
+    function insertTierPrices(html) {
+        var div = document.createElement('div');
+        div.innerHTML = html;
+        var tierEl = div.firstChild;
+
+        var priceBox = document.querySelector('.price-box.price-final_price');
+        if (priceBox && priceBox.parentNode) {
+            priceBox.parentNode.insertBefore(tierEl, priceBox.nextSibling);
+        } else {
+            var infoPrice = document.querySelector('.product-info-price');
+            if (infoPrice) {
+                infoPrice.appendChild(tierEl);
+            }
+        }
+    }
+
+    function showTiers(tiers, isDynamic) {
+        if (tiers && tiers.length) {
+            removeTierPrices();
+            insertTierPrices(buildTierHtml(tiers, isDynamic));
+        } else {
+            removeTierPrices();
+        }
+    }
+
+    function fetchInitialTierPrices() {
+        var productId = getMainProductId();
+        if (!productId) {
+            resolvePrices({});
+            return;
+        }
+        fetch(BASE_URL + 'prices/ajax/ajaxprices', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                skus: [],
+                product_ids: [productId],
+                tier_product_ids: [productId]
+            })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            resolvePrices(data || {});
+
+            if (!data || !data.tier_prices) {
+                return;
+            }
+            Object.keys(data.tier_prices).forEach(function (sku) {
+                if (data.tier_prices[sku].length) {
+                    b2bInitialTiers = data.tier_prices[sku];
+                }
+            });
+            if (b2bInitialTiers.length) {
+                showTiers(b2bInitialTiers, false);
+            }
+        })
+        .catch(function () {
+            resolvePrices({});
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        fetchInitialTierPrices();
+    });
+
+    window.addEventListener('configurable-selection-changed', function (event) {
+        var detail = event.detail || {};
+        var candidates = detail.candidates || [];
+
+        if (candidates.length === 1) {
+            var childId = candidates[0];
+            onPricesReady(function (data) {
+                var childTiers = data.configurable_prices
+                    && data.configurable_prices[childId]
+                    && data.configurable_prices[childId].tierPrices;
+                showTiers(childTiers || [], true);
+            });
+        } else {
+            // Partial selection or deselection — restore initial tiers
+            removeTierPrices();
+            if (b2bInitialTiers.length) {
+                insertTierPrices(buildTierHtml(b2bInitialTiers, false));
+            }
+        }
+    });
+}());
+</script>
