@@ -1,16 +1,41 @@
 {
     "name": "orangecat/module-prices",
-    "description": "Orangecat Prices Module",
-    "require": {
-        "php": "~8.1.0||~8.2.0||~8.3.0",
-        "magento/framework": "103.0.*|104.0.*",
-        "orangecat/module-company": "*"
-    },
+    "description": "B2B pricing engine orchestrator for Magento 2 — calculator pool, conflict resolution, and frontend price injection",
     "type": "magento2-module",
-    "version": "1.0.0",
     "license": [
         "OSL-3.0"
     ],
+    "authors": [
+        {
+            "name": "Oliverio Gombert",
+            "email": "olivertar@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "keywords": [
+        "magento2",
+        "b2b",
+        "prices",
+        "orangecat"
+    ],
+    "require": {
+        "php": ">=8.1",
+        "magento/framework": "*",
+        "magento/module-catalog": "*",
+        "magento/module-configurable-product": "*",
+        "magento/module-bundle": "*",
+        "magento/module-customer": "*",
+        "magento/module-quote": "*",
+        "magento/module-sales": "*",
+        "magento/module-store": "*",
+        "magento/module-inventory-catalog-frontend-ui": "*",
+        "orangecat/core": "*",
+        "orangecat/module-company": "*"
+    },
+    "suggest": {
+        "orangecat/module-prices-list": "Price list management — provides the pricing data consumed by this engine",
+        "orangecat/module-prices-company": "Links price lists to companies"
+    },
     "autoload": {
         "files": [
             "registration.php"
