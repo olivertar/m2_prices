@@ -1,0 +1,15 @@
+"Conflict Resolution Mode","Conflict Resolution Mode"
+"Enable B2B Pricing Engine","Enable B2B Pricing Engine"
+"Enable dynamic calculation of B2B Volume/Tier pricing. If disabled, AJAX calls will ignore volume discounts to maximize performance","Enable dynamic calculation of B2B Volume/Tier pricing. If disabled, AJAX calls will ignore volume discounts to maximize performance"
+"Enable dynamic calculation of B2B Volume/Tier pricing. If disabled, AJAX calls will ignore volume discounts to maximize performance.","Enable dynamic calculation of B2B Volume/Tier pricing. If disabled, AJAX calls will ignore volume discounts to maximize performance."
+"Enable or disable the Global B2B Pricing Orchestrator. If disabled, all modules (Lists, Families, etc.) will be ignored","Enable or disable the Global B2B Pricing Orchestrator. If disabled, all modules (Lists, Families, etc.) will be ignored"
+"Enable or disable the Global B2B Pricing Orchestrator. If disabled, all modules (Lists, Families, etc.) will be ignored.","Enable or disable the Global B2B Pricing Orchestrator. If disabled, all modules (Lists, Families, etc.) will be ignored."
+"Global B2B Pricing Engine","Global B2B Pricing Engine"
+"If multiple pricing modules return a price, which one wins?","If multiple pricing modules return a price, which one wins?"
+"Lowest Price (Best for Customer)","Lowest Price (Best for Customer)"
+"Priority (Last Module Executed)","Priority (Last Module Executed)"
+"Prices (B2B)","Prices (B2B)"
+"Use Company Tier Prices","Use Company Tier Prices"
+"B2B Prices","B2B Prices"
+Prices,Prices
+
