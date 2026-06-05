@@ -18,6 +18,14 @@
 define(['jquery'], function ($) {
     'use strict';
 
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
     if (window.b2bPricesPromise) {
         return; // Already started
     }
@@ -110,7 +118,7 @@ define(['jquery'], function ($) {
 
                         $wrappers.each(function () {
                             $(this).attr('data-price-amount', p.final_price);
-                            $(this).find('.price').html(p.formatted);
+                            $(this).find('.price').text(p.formatted);
                         });
 
                         // Patch min and max prices if they exist (Bundles)
@@ -119,7 +127,7 @@ define(['jquery'], function ($) {
                             if ($minWrappers.length) {
                                 $minWrappers.each(function () {
                                     $(this).attr('data-price-amount', p.min_price);
-                                    $(this).find('.price').html(p.min_price_formatted);
+                                    $(this).find('.price').text(p.min_price_formatted);
                                 });
                             } else {
                                 // FPC-cached page rendered a single price (no range) because guest prices were 0.
@@ -128,7 +136,7 @@ define(['jquery'], function ($) {
                                 $fallback.each(function () {
                                     $(this).attr('data-price-amount', p.min_price);
                                     $(this).attr('data-price-type', 'minPrice');
-                                    $(this).find('.price').html(p.min_price_formatted);
+                                    $(this).find('.price').text(p.min_price_formatted);
                                 });
 
                                 // Add "From" label if missing
@@ -143,7 +151,7 @@ define(['jquery'], function ($) {
                             if ($maxWrappers.length) {
                                 $maxWrappers.each(function () {
                                     $(this).attr('data-price-amount', p.max_price);
-                                    $(this).find('.price').html(p.max_price_formatted);
+                                    $(this).find('.price').text(p.max_price_formatted);
                                 });
                             }
                         }
@@ -186,7 +194,7 @@ define(['jquery'], function ($) {
                     if (tiers.length > 0) {
                         var html = '<ul class="prices-tier items b2b-tier-prices" style="margin-top: 15px; margin-bottom: 20px;">';
                         $.each(tiers, function (i, tier) {
-                            html += '<li class="item" style="margin-bottom: 5px;">Buy ' + tier.qty + ' for <span class="price-container price-tier_price"><span class="price-wrapper"><span class="price" style="font-weight: bold;">' + tier.formatted + '</span></span></span> each</li>';
+                            html += '<li class="item" style="margin-bottom: 5px;">Buy ' + escHtml(tier.qty) + ' for <span class="price-container price-tier_price"><span class="price-wrapper"><span class="price" style="font-weight: bold;">' + escHtml(tier.formatted) + '</span></span></span> each</li>';
                         });
                         html += '</ul>';
 

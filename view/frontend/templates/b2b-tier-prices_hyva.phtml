@@ -5,6 +5,14 @@
 (function () {
     'use strict';
 
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
     var BASE_URL = window.BASE_URL || '/';
     if (BASE_URL[BASE_URL.length - 1] !== '/') {
         BASE_URL += '/';
@@ -40,10 +48,10 @@
         var html = '<ul class="' + classes + '" style="margin-top:15px;margin-bottom:20px;">';
         tiers.forEach(function (tier) {
             html += '<li class="item" style="margin-bottom:5px;">'
-                + 'Buy ' + tier.qty + ' for '
+                + 'Buy ' + escHtml(tier.qty) + ' for '
                 + '<span class="price-container price-tier_price" style="display:inline;">'
                 + '<span class="price-wrapper" style="display:inline;">'
-                + '<span class="price" style="font-weight:bold;">' + tier.formatted + '</span>'
+                + '<span class="price" style="font-weight:bold;">' + escHtml(tier.formatted) + '</span>'
                 + '</span></span> each'
                 + '</li>';
         });

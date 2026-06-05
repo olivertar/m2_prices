@@ -36,7 +36,8 @@ class ProcessFinalPriceObserver implements ObserverInterface
         private readonly PriceResolver $priceResolver,
         private readonly CustomerSession $customerSession,
         private readonly CompanyManagement $companyManagement
-    ) {}
+    ) {
+    }
 
     /**
      * Set the B2B price in the cart product.

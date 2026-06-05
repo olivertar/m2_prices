@@ -34,7 +34,8 @@ class Config
      */
     public function __construct(
         private readonly ScopeConfigInterface $scopeConfig
-    ) {}
+    ) {
+    }
 
     /**
      * Check if the B2B Custom Pricing Engine is globally enabled.

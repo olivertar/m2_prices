@@ -24,7 +24,9 @@ use Orangecat\Prices\Model\PriceResolver;
 use Orangecat\Prices\Model\TierPriceResolver;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Model\Product\Attribute\Source\Status as ProductStatus;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigurableType;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * AJAX endpoint that returns B2B prices for a batch of SKUs.
@@ -64,8 +66,10 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
         private readonly TierPriceResolver $tierPriceResolver,
         private readonly PriceCurrencyInterface $priceCurrency,
         private readonly ProductRepositoryInterface $productRepository,
-        private readonly ConfigurableType $configurableType
-    ) {}
+        private readonly ConfigurableType $configurableType,
+        private readonly StoreManagerInterface $storeManager
+    ) {
+    }
 
     /**
      * @inheritdoc
@@ -86,6 +90,11 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
 
         // Parse JSON body
         $body = $this->request->getContent();
+
+        if (strlen($body) > 65536) {
+            return $result->setData(['prices' => new \stdClass()]);
+        }
+
         $data = json_decode($body, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
@@ -111,11 +120,14 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
         $tierPrices = [];
 
         $productsToProcess = [];
+        $storeId = (int)$this->storeManager->getStore()->getId();
 
         foreach ($skus as $sku) {
-            if (!is_string($sku) || $sku === '') continue;
+            if (!is_string($sku) || $sku === '') {
+                continue;
+            }
             try {
-                $product = $this->productRepository->get($sku);
+                $product = $this->productRepository->get($sku, false, $storeId);
                 $productsToProcess[$product->getId()] = $product;
             } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
                 continue;
@@ -123,9 +135,11 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
         }
 
         foreach ($productIds as $pId) {
-            if (isset($productsToProcess[$pId])) continue;
+            if (isset($productsToProcess[$pId])) {
+                continue;
+            }
             try {
-                $product = $this->productRepository->getById($pId);
+                $product = $this->productRepository->getById($pId, false, $storeId);
                 $productsToProcess[$product->getId()] = $product;
             } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
                 continue;
@@ -133,9 +147,11 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
         }
 
         foreach ($tierProductIds as $pId) {
-            if (isset($productsToProcess[$pId])) continue;
+            if (isset($productsToProcess[$pId])) {
+                continue;
+            }
             try {
-                $product = $this->productRepository->getById($pId);
+                $product = $this->productRepository->getById($pId, false, $storeId);
                 $productsToProcess[$product->getId()] = $product;
             } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
                 continue;
@@ -143,6 +159,10 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
         }
 
         foreach ($productsToProcess as $product) {
+            if ((int)$product->getStatus() !== ProductStatus::STATUS_ENABLED) {
+                continue;
+            }
+
             $sku = $product->getSku();
             $productId = $product->getId();
             $typeId = $product->getTypeId();
@@ -359,7 +379,15 @@ class AjaxPrices implements HttpPostActionInterface, CsrfAwareActionInterface
      */
     public function validateForCsrf(RequestInterface $request): ?bool
     {
-        // This is a JSON API endpoint — CSRF is not applicable
+        $origin = $request->getHeader('Origin');
+        if ($origin) {
+            $storeBaseUrl = $this->storeManager->getStore()->getBaseUrl();
+            $allowedHost = parse_url($storeBaseUrl, PHP_URL_HOST);
+            $requestHost = parse_url($origin, PHP_URL_HOST);
+            if ($requestHost !== $allowedHost) {
+                return false;
+            }
+        }
         return true;
     }
 }

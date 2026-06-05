@@ -31,7 +31,8 @@ class FinalPricePlugin
         private readonly CustomerSession $customerSession,
         private readonly CompanyManagement $companyManagement,
         private readonly \Magento\Framework\App\Http\Context $httpContext
-    ) {}
+    ) {
+    }
 
     /**
      * Returns the overridden price if applicable.

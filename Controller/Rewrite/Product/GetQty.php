@@ -25,6 +25,7 @@ use Orangecat\Company\Model\CompanyManagement;
 use Orangecat\Prices\Model\TierPriceResolver;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 class GetQty extends BaseGetQty
 {
@@ -37,7 +38,8 @@ class GetQty extends BaseGetQty
         private CompanyManagement $companyManagement,
         private TierPriceResolver $tierPriceResolver,
         private ProductRepositoryInterface $productRepository,
-        private PriceCurrencyInterface $priceCurrency
+        private PriceCurrencyInterface $priceCurrency,
+        private StoreManagerInterface $storeManager
     ) {
         parent::__construct($context, $resultPageFactory, $productQty, $stockResolver);
     }
@@ -74,7 +76,8 @@ class GetQty extends BaseGetQty
                 $customerId = (int)$this->customerSession->getCustomerId();
                 $companyId = (int)$this->companyManagement->getCompanyIdByCustomerId($customerId);
                 
-                $product = $this->productRepository->get($sku);
+                $storeId = (int)$this->storeManager->getStore()->getId();
+                $product = $this->productRepository->get($sku, false, $storeId);
                 $baseProductPrice = (float)$product->getPrice();
                 
                 $resolvedTiers = $this->tierPriceResolver->resolveTiers($sku, $companyId, $baseProductPrice);

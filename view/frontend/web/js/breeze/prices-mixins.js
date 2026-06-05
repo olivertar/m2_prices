@@ -1,7 +1,13 @@
 define(['jquery', 'underscore', 'mage/url'], function ($, _, urlBuilder) {
     'use strict';
 
-    console.log('B2B Prices Mixins Loaded (Breeze)');
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
 
     /**
      * Fetch inventory/tier prices via AJAX and render them in the DOM.
@@ -13,8 +19,6 @@ define(['jquery', 'underscore', 'mage/url'], function ($, _, urlBuilder) {
             $('.b2b-tier-prices.dynamic-b2b-tier').remove();
             return;
         }
-
-        console.log('B2B Inventory AJAX for SKU:', productSku);
 
         // Remove previous dynamic tier prices
         $('.b2b-tier-prices.dynamic-b2b-tier').remove();
@@ -29,8 +33,6 @@ define(['jquery', 'underscore', 'mage/url'], function ($, _, urlBuilder) {
                 'salesChannelCode': salesChannelCode
             }
         }).done(function (response) {
-            console.log('B2B Inventory Response:', response);
-
             // Update qty availability UI
             var $qtyBlock = $('.availability.only, .stock.available');
             var $qtyVal = $('.availability.only > strong, .stock.available > span');
@@ -45,24 +47,21 @@ define(['jquery', 'underscore', 'mage/url'], function ($, _, urlBuilder) {
             if (response.tierPrices && response.tierPrices.length > 0) {
                 var html = '<ul class="prices-tier items b2b-tier-prices dynamic-b2b-tier" style="margin-top:15px;margin-bottom:20px;">';
                 $.each(response.tierPrices, function (i, tier) {
-                    html += '<li class="item" style="margin-bottom:5px;">Buy ' + tier.qty +
+                    html += '<li class="item" style="margin-bottom:5px;">Buy ' + escHtml(tier.qty) +
                         ' for <span class="price-container price-tier_price"><span class="price-wrapper">' +
-                        '<span class="price" style="font-weight:bold;">' + tier.formatted +
+                        '<span class="price" style="font-weight:bold;">' + escHtml(tier.formatted) +
                         '</span></span></span> each</li>';
                 });
                 html += '</ul>';
 
                 var $priceBox = $('.product-info-main [data-role="priceBox"], .product-info-wrapper [data-role="priceBox"]').first();
                 if ($priceBox.length) {
-                    console.log('B2B tiers rendered after priceBox');
                     $priceBox.after(html);
                 } else {
-                    console.log('B2B tiers rendered in product-info-main (fallback)');
                     $('.product-info-main, .product-info-wrapper').first().append(html);
                 }
             }
         }).fail(function () {
-            console.log('B2B Inventory AJAX Failed');
             $('.availability.only, .stock.available').hide();
         });
     };
@@ -104,7 +103,7 @@ define(['jquery', 'underscore', 'mage/url'], function ($, _, urlBuilder) {
             setTimeout(function () {
                 var $priceBox = self.element.parents(self.options.selectorProduct).find(self.options.selectorProductPrice);
                 if (!$priceBox.length) {
-                    $priceBox = $('[data-role=priceBox][data-product-id=' + confProductId + ']');
+                    $priceBox = $('[data-role="priceBox"][data-product-id="' + parseInt(confProductId, 10) + '"]');
                 }
                 if ($priceBox.length && ($priceBox.data('mage-priceBox') || $priceBox.data('priceBox') || $priceBox.priceBox('instance'))) {
                     try {
@@ -121,8 +120,8 @@ define(['jquery', 'underscore', 'mage/url'], function ($, _, urlBuilder) {
     var template = '<ul class="prices-tier items b2b-tier-prices" style="margin-top: 15px; margin-bottom: 20px;">' +
         '<% _.each(tierPrices, function(item, key) { %>' +
         '<li class="item" style="margin-bottom: 5px;">' +
-        'Buy <%= item.qty %> for <span class="price-container price-tier_price"><span class="price-wrapper">' +
-        '<span class="price" style="font-weight: bold;"><%= typeof priceUtils !== "undefined" && priceUtils.formatPrice ? priceUtils.formatPrice(item.price, currencyFormat) : item.formatted %>' +
+        'Buy <%- item.qty %> for <span class="price-container price-tier_price"><span class="price-wrapper">' +
+        '<span class="price" style="font-weight: bold;"><%- typeof priceUtils !== "undefined" && priceUtils.formatPrice ? priceUtils.formatPrice(item.price, currencyFormat) : item.formatted %>' +
         '</span></span></span> each' +
         '</li>' +
         '<% }); %>' +

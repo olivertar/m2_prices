@@ -28,7 +28,8 @@ class TierPriceResolver
     public function __construct(
         private readonly CalculatorPool $calculatorPool,
         private readonly Config $config
-    ) {}
+    ) {
+    }
 
     /**
      * Aggregates quantity pricing tiers from all calculators based on resolution modes.

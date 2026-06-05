@@ -29,7 +29,8 @@ class CacheKeyPlugin
         private readonly Context $httpContext,
         private readonly CustomerSession $customerSession,
         private readonly CompanyManagement $companyManagement
-    ) {}
+    ) {
+    }
 
     /**
      * Append company ID to cache key to separate block scope caching by company context.

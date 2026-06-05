@@ -37,7 +37,8 @@ class ToOrderItem
         private readonly PriceResolver $priceResolver,
         private readonly CustomerSession $customerSession,
         private readonly CompanyManagement $companyManagement
-    ) {}
+    ) {
+    }
 
     /**
      * Converts the quote item and applies the orchestrated B2B price.
