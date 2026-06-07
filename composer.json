@@ -1,6 +1,6 @@
 {
     "name": "orangecat/module-prices",
-    "description": "B2B pricing engine orchestrator for Magento 2 — calculator pool, conflict resolution, and frontend price injection",
+    "description": "B2B pricing engine orchestrator for Magento 2 \u2014 calculator pool, conflict resolution, and frontend price injection",
     "type": "magento2-module",
     "license": [
         "OSL-3.0"
@@ -21,19 +21,11 @@
     "require": {
         "php": ">=8.1",
         "magento/framework": "*",
-        "magento/module-catalog": "*",
-        "magento/module-configurable-product": "*",
-        "magento/module-bundle": "*",
-        "magento/module-customer": "*",
-        "magento/module-quote": "*",
-        "magento/module-sales": "*",
-        "magento/module-store": "*",
-        "magento/module-inventory-catalog-frontend-ui": "*",
         "orangecat/core": "*",
         "orangecat/module-company": "*"
     },
     "suggest": {
-        "orangecat/module-prices-list": "Price list management — provides the pricing data consumed by this engine",
+        "orangecat/module-prices-list": "Price list management \u2014 provides the pricing data consumed by this engine",
         "orangecat/module-prices-company": "Links price lists to companies"
     },
     "autoload": {
